@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Client Dashboard - Smart Lighting System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Performance optimizations -->
+  <link rel="preload" href="assets/logo.png" as="image">
+  <link rel="preload" href="assets/thermometer.png" as="image">
+  <link rel="preload" href="assets/bulb_on.png" as="image">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header-hero {
+      background: linear-gradient(135deg, #0a3d62 0%, #1e5f8e 100%);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("assets/room.jpg") center/cover no-repeat;
+      opacity: 0.2;
+      z-index: 0;
+    }
+    
+    .header-hero > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header-hero .logo {
+      width: 60px;
+      height: auto;
+      margin-right: 20px;
+      transition: transform 0.3s ease;
+    }
+    
+    .header-hero .logo:hover {
+      transform: scale(1.05);
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    
+    /* Container */
+    .container {
+      flex: 1;
+      padding: 20px 30px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 25px;
+      margin-bottom: 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    
+    /* User Info Card */
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .user-details h2 {
+      color: #0a3d62;
+      margin-bottom: 5px;
+      font-size: 22px;
+    }
+    
+    .user-details p {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    /* Buttons */
+    .btn {
+      background: linear-gradient(135deg, #0077ff, #005fe0);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #005fe0, #0047b3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,119,255,0.3);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .btn.secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    
+    .btn.secondary:hover:not(:disabled) {
+      background: #e0e0e0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .btn.success {
+      background: linear-gradient(135deg, #4caf50, #388e3c);
+    }
+    
+    .btn.success:hover:not(:disabled) {
+      background: linear-gradient(135deg, #388e3c, #2e7d32);
+    }
+    
+    /* Room Card */
+    .room-card {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .room-card:hover {
+      background: #f0f1f3;
+      transform: translateY(-2px);
+    }
+    
+    .room-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .room-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0a3d62;
+    }
+    
+    .room-status {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+    }
+    
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    
+    .status-badge.active {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .status-badge.inactive {
+      background: #f5f5f5;
+      color: #757575;
+    }
+    
+    /* Light Controls */
+    .light-controls {
+      margin-bottom: 15px;
+    }
+    
+    .control-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .brightness-bar {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+    
+    .brightness-segment {
+      flex: 1;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      transition: background 0.3s ease;
+    }
+    
+    .brightness-segment.active {
+      background: #ffc107;
+    }
+    
+    .brightness-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .brightness-btn {
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: #0077ff;
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .brightness-btn:hover {
+      background: #005fe0;
+      transform: scale(1.1);
+    }
+    
+    .brightness-value {
+      flex: 1;
+      text-align: center;
+      font-weight: 500;
+      color: #0a3d62;
+    }
+    
+    .brightness-presets {
+      display: flex;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    
+    .preset-btn {
+      flex: 1;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .preset-btn:hover {
+      background: #0077ff;
+      color: white;
+      border-color: #0077ff;
+    }
+    
+    /* Temperature Controls */
+    .temp-controls {
+      margin-bottom: 15px;
+    }
+    
+    .temp-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .temp-current {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .temp-current.high {
+      color: #f44336;
+    }
+    
+    .temp-current.normal {
+      color: #4caf50;
+    }
+    
+    .temp-current.low {
+      color: #2196f3;
+    }
+    
+    .temp-target {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .temp-input {
+      width: 60px;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .hvac-controls {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .hvac-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    
+    .hvac-btn:hover {
+      background: #f0f0f0;
+    }
+    
+    .hvac-btn.active {
+      background: #0077ff;
+      color: white;
+      border-color: #0077ff;
+    }
+    
+    .hvac-btn.ac.active {
+      background: #2196f3;
+      border-color: #2196f3;
+    }
+    
+    .hvac-btn.heater.active {
+      background: #ff5722;
+      border-color: #ff5722;
+    }
+    
+    .hvac-btn.auto.active {
+      background: #4caf50;
+      border-color: #4caf50;
+    }
+    
+    /* Energy Display */
+    .energy-display {
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .energy-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0a3d62;
+    }
+    
+    /* Stats Overview */
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .stat-item .value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0a3d62;
+    }
+    
+    .stat-item .label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    /* Alerts */
+    .alert-box {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border-left: 4px solid #0077ff;
+    }
+    
+    .alert {
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .alert:last-child {
+      margin-bottom: 0;
+    }
+    
+    .alert.info {
+      background: #e3f2fd;
+      color: #0d47a1;
+      border-left: 3px solid #2196f3;
+    }
+    
+    .alert.warning {
+      background: #fff8e1;
+      color: #ff6f00;
+      border-left: 3px solid #ffc107;
+    }
+    
+    .alert.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-left: 3px solid #4caf50;
+    }
+    
+    .alert.error {
+      background: #ffebee;
+      color: #c62828;
+      border-left: 3px solid #f44336;
+    }
+    
+    /* Footer */
+    .page-footer {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 14px;
+      background: #f0f0f0;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-hero {
+        padding: 15px 20px;
+      }
+      
+      .title {
+        font-size: 20px;
+      }
+      
+      .container {
+        padding: 15px 20px;
+      }
+      
+      .user-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header-hero">
+    <img class="logo" src="assets/logo.png" alt="Smart Lighting System Logo" onerror="this.style.display='none'">
+    <div>
+      <div class="title">Smart Lighting & Temperature Monitoring System</div>
+      <div class="subtitle">Client Dashboard</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    <!-- User Info Card -->
+    <section class="card">
+      <div class="user-info">
+        <div class="user-details">
+          <h2 id="welcomeMsg">Welcome, Guest</h2>
+          <p id="roleDisplay">Role: Client</p>
+          <p id="lastLogin">Last login: --</p>
+        </div>
+        <div>
+          <button class="btn secondary" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="card">
+      <h3 style="margin-bottom: 15px;">Your Room Status</h3>
+      <div class="stats-overview">
+        <div class="stat-item">
+          <div class="value" id="currentTemp">--°C</div>
+          <div class="label">Current Temperature</div>
+        </div>
+        <div class="stat-item">
+          <div class="value" id="lightStatus">--</div>
+          <div class="label">Light Status</div>
+        </div>
+        <div class="stat-item">
+          <div class="value" id="brightnessLevel">--%</div>
+          <div class="label">Brightness Level</div>
+        </div>
+        <div class="stat-item">
+          <div class="value" id="energyUsage">-- kWh</div>
+          <div class="label">Energy Usage</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Room Control Panel -->
+    <section class="card">
+      <h3>Your Room Control Panel</h3>
+      <div class="room-card">
+        <div class="room-header">
+          <div class="room-name">Your Room</div>
+          <div class="room-status">
+            <span class="status-badge active" id="roomOccupied">
+              🏠 Occupied
+            </span>
+          </div>
+        </div>
+        
+        <!-- Light Controls -->
+        <div class="light-controls">
+          <div class="control-label">
+            <span>Light Control</span>
+            <span id="lightToggleText">ON</span>
+          </div>
+          <div class="brightness-bar" id="brightnessBar">
+            <!-- Brightness segments will be generated here -->
+          </div>
+          <div class="brightness-controls">
+            <button class="brightness-btn" id="brightnessDown">-</button>
+            <div class="brightness-value" id="brightnessValue">75%</div>
+            <button class="brightness-btn" id="brightnessUp">+</button>
+          </div>
+          <div class="brightness-presets">
+            <button class="preset-btn" data-brightness="25">25%</button>
+            <button class="preset-btn" data-brightness="50">50%</button>
+            <button class="preset-btn" data-brightness="75">75%</button>
+            <button class="preset-btn" data-brightness="100">100%</button>
+          </div>
+        </div>
+        
+        <!-- Temperature Controls -->
+        <div class="temp-controls">
+          <div class="control-label">
+            <span>Temperature Control</span>
+            <span id="autoModeText">Auto: ON</span>
+          </div>
+          <div class="temp-display">
+            <div class="temp-current" id="tempCurrent">24°C</div>
+            <div class="temp-target">
+              Target: 
+              <input type="number" class="temp-input" id="tempTarget" value="22" min="16" max="30">°C
+            </div>
+          </div>
+          <div class="hvac-controls">
+            <button class="hvac-btn ac" id="acBtn">
+              ❄️ AC
+            </button>
+            <button class="hvac-btn heater" id="heaterBtn">
+              🔥 Heater
+            </button>
+            <button class="hvac-btn auto active" id="autoBtn">
+              🔄 Auto
+            </button>
+          </div>
+        </div>
+        
+        <!-- Energy Display -->
+        <div class="energy-display">
+          Energy Usage: <span class="energy-value" id="roomEnergyUsage">0.5 kWh</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alerts -->
+    <section class="card">
+      <h3 style="margin-bottom: 15px;">System Alerts</h3>
+      <div id="alerts" class="alert-box" role="status" aria-live="polite">
+        <div class="alert info">System initialized. Welcome to your smart room!</div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="page-footer">© Smart Lighting System 2025 — Client Dashboard</footer>
+  </main>
+
+  <script>
+    // Client data
+    const clientUser = sessionStorage.getItem("currentUser") || "Guest";
+    const clientRole = sessionStorage.getItem("currentRole") || "Client";
+    
+    // Room data
+    const roomData = {
+      temp: 24,
+      targetTemp: 22,
+      lightOn: true,
+      brightness: 75,
+      acOn: false,
+      heaterOn: false,
+      autoMode: true,
+      energyUsage: 0.5
+    };
+    
+    // DOM Elements
+    const welcomeMsgEl = document.getElementById('welcomeMsg');
+    const roleDisplayEl = document.getElementById('roleDisplay');
+    const lastLoginEl = document.getElementById('lastLogin');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    // Stats elements
+    const currentTempEl = document.getElementById('currentTemp');
+    const lightStatusEl = document.getElementById('lightStatus');
+    const brightnessLevelEl = document.getElementById('brightnessLevel');
+    const energyUsageEl = document.getElementById('energyUsage');
+    
+    // Room control elements
+    const lightToggleTextEl = document.getElementById('lightToggleText');
+    const brightnessBarEl = document.getElementById('brightnessBar');
+    const brightnessValueEl = document.getElementById('brightnessValue');
+    const brightnessDownBtn = document.getElementById('brightnessDown');
+    const brightnessUpBtn = document.getElementById('brightnessUp');
+    const presetBtns = document.querySelectorAll('.preset-btn');
+    
+    const tempCurrentEl = document.getElementById('tempCurrent');
+    const tempTargetEl = document.getElementById('tempTarget');
+    const autoModeTextEl = document.getElementById('autoModeText');
+    const acBtn = document.getElementById('acBtn');
+    const heaterBtn = document.getElementById('heaterBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    
+    const roomEnergyUsageEl = document.getElementById('roomEnergyUsage');
+    const alertsEl = document.getElementById('alerts');
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if user is logged in
+      if (!clientUser || clientRole !== "Client") {
+        addAlert("Please login as a client first.", "error");
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 2000);
+        return;
+      }
+      
+      // Update user info
+      welcomeMsgEl.textContent = `Welcome, ${clientUser}`;
+      roleDisplayEl.textContent = `Role: ${clientRole}`;
+      updateLastLogin();
+      
+      // Initialize UI
+      updateBrightnessBar();
+      updateStats();
+      
+      // Add event listeners
+      brightnessDownBtn.addEventListener('click', () => adjustBrightness(-10));
+      brightnessUpBtn.addEventListener('click', () => adjustBrightness(10));
+      
+      presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          setBrightness(parseInt(btn.dataset.brightness));
+        });
+      });
+      
+      tempTargetEl.addEventListener('change', () => {
+        roomData.targetTemp = parseInt(tempTargetEl.value);
+        addAlert(`Target temperature set to ${roomData.targetTemp}°C`, 'info');
+        if (roomData.autoMode) {
+          checkAutoMode();
+        }
+      });
+      
+      acBtn.addEventListener('click', toggleAC);
+      heaterBtn.addEventListener('click', toggleHeater);
+      autoBtn.addEventListener('click', toggleAuto);
+      logoutBtn.addEventListener('click', logout);
+      
+      // Start simulation
+      startSimulation();
+    });
+    
+    // Update last login time
+    function updateLastLogin() {
+      const now = new Date();
+      const formattedTime = now.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      lastLoginEl.textContent = `Last login: ${formattedTime}`;
+    }
+    
+    // Brightness control functions
+    function adjustBrightness(delta) {
+      roomData.brightness = Math.max(0, Math.min(100, roomData.brightness + delta));
+      roomData.lightOn = roomData.brightness > 0;
+      updateBrightnessBar();
+      updateStats();
+      addAlert(`Brightness adjusted to ${roomData.brightness}%`, 'info');
+    }
+    
+    function setBrightness(brightness) {
+      roomData.brightness = brightness;
+      roomData.lightOn = brightness > 0;
+      updateBrightnessBar();
+      updateStats();
+      addAlert(`Brightness set to ${brightness}%`, 'info');
+    }
+    
+    function updateBrightnessBar() {
+      brightnessBarEl.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const segment = document.createElement('div');
+        segment.className = 'brightness-segment';
+        if (i < (roomData.brightness / 10)) {
+          segment.classList.add('active');
+        }
+        brightnessBarEl.appendChild(segment);
+      }
+      
+      brightnessValueEl.textContent = `${roomData.brightness}%`;
+      lightToggleTextEl.textContent = roomData.lightOn ? 'ON' : 'OFF';
+    }
+    
+    // Temperature control functions
+    function toggleAC() {
+      roomData.acOn = !roomData.acOn;
+      if (roomData.acOn) {
+        roomData.heaterOn = false;
+        roomData.autoMode = false;
+      }
+      updateTempControls();
+      updateStats();
+      addAlert(`AC turned ${roomData.acOn ? 'ON' : 'OFF'}`, 'info');
+    }
+    
+    function toggleHeater() {
+      roomData.heaterOn = !roomData.heaterOn;
+      if (roomData.heaterOn) {
+        roomData.acOn = false;
+        roomData.autoMode = false;
+      }
+      updateTempControls();
+      updateStats();
+      addAlert(`Heater turned ${roomData.heaterOn ? 'ON' : 'OFF'}`, 'info');
+    }
+    
+    function toggleAuto() {
+      roomData.autoMode = !roomData.autoMode;
+      if (roomData.autoMode) {
+        checkAutoMode();
+      }
+      updateTempControls();
+      addAlert(`Auto mode turned ${roomData.autoMode ? 'ON' : 'OFF'}`, 'info');
+    }
+    
+    function checkAutoMode() {
+      if (!roomData.autoMode) return;
+      
+      if (roomData.temp > roomData.targetTemp + 2) {
+        roomData.acOn = true;
+        roomData.heaterOn = false;
+      } else if (roomData.temp < roomData.targetTemp - 2) {
+        roomData.heaterOn = true;
+        roomData.acOn = false;
+      } else {
+        roomData.acOn = false;
+        roomData.heaterOn = false;
+      }
+      
+      updateTempControls();
+    }
+    
+    function updateTempControls() {
+      // Update temperature display
+      tempCurrentEl.textContent = `${roomData.temp}°C`;
+      tempCurrentEl.className = 'temp-current';
+      if (roomData.temp > 28) {
+        tempCurrentEl.classList.add('high');
+      } else if (roomData.temp < 18) {
+        tempCurrentEl.classList.add('low');
+      } else {
+        tempCurrentEl.classList.add('normal');
+      }
+      
+      // Update HVAC buttons
+      acBtn.className = roomData.acOn ? 'hvac-btn ac active' : 'hvac-btn ac';
+      heaterBtn.className = roomData.heaterOn ? 'hvac-btn heater active' : 'hvac-btn heater';
+      autoBtn.className = roomData.autoMode ? 'hvac-btn auto active' : 'hvac-btn auto';
+      
+      // Update auto mode text
+      autoModeTextEl.textContent = `Auto: ${roomData.autoMode ? 'ON' : 'OFF'}`;
+    }
+    
+    // Update stats
+    function updateStats() {
+      currentTempEl.textContent = `${roomData.temp}°C`;
+      lightStatusEl.textContent = roomData.lightOn ? 'ON' : 'OFF';
+      brightnessLevelEl.textContent = `${roomData.brightness}%`;
+      energyUsageEl.textContent = `${roomData.energyUsage.toFixed(2)} kWh`;
+      roomEnergyUsageEl.textContent = `${roomData.energyUsage.toFixed(2)} kWh`;
+    }
+    
+    // Simulation
+    function startSimulation() {
+      setInterval(() => {
+        // Random temperature fluctuation
+        const tempChange = (Math.random() - 0.5) * 0.5;
+        roomData.temp = Math.round((roomData.temp + tempChange) * 10) / 10;
+        
+        // HVAC effects
+        if (roomData.acOn) {
+          roomData.temp = Math.max(16, roomData.temp - 0.3);
+        }
+        if (roomData.heaterOn) {
+          roomData.temp = Math.min(30, roomData.temp + 0.3);
+        }
+        
+        // Auto mode check
+        if (roomData.autoMode) {
+          checkAutoMode();
+        }
+        
+        // Calculate energy usage
+        let energy = 0;
+        if (roomData.lightOn) {
+          energy += 0.1 + (roomData.brightness / 100) * 0.4;
+        }
+        if (roomData.acOn) {
+          energy += 0.8;
+        }
+        if (roomData.heaterOn) {
+          energy += 0.6;
+        }
+        roomData.energyUsage = Math.round(energy * 10) / 10;
+        
+        // Temperature alerts
+        if (roomData.temp > 28) {
+          addAlert(`High temperature alert: ${roomData.temp.toFixed(1)}°C in your room!`, 'warning');
+        }
+        if (roomData.temp < 18) {
+          addAlert(`Low temperature alert: ${roomData.temp.toFixed(1)}°C in your room!`, 'warning');
+        }
+        
+        // Update UI
+        updateTempControls();
+        updateStats();
+      }, 3000);
+    }
+    
+    // Logout
+    function logout() {
+      addAlert('Logging out...', 'info');
+      setTimeout(() => {
+        sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('currentRole');
+        window.location.href = 'login.html';
+      }, 1500);
+    }
+    
+    // Add alert
+    function addAlert(message, type = 'info') {
+      const alertEl = document.createElement('div');
+      alertEl.className = `alert ${type}`;
+      alertEl.textContent = message;
+      
+      alertsEl.appendChild(alertEl);
+      
+      // Keep only last 5 alerts
+      while (alertsEl.children.length > 5) {
+        alertsEl.removeChild(alertsEl.firstChild);
+      }
+      
+      // Scroll to bottom
+      alertsEl.scrollTop = alertsEl.scrollHeight;
+    }
+  </script>
+</body>
+</html>
